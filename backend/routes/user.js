@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { sign } from 'jsonwebtoken';
 import JWT_SECRET from '../config';
 import { object, string } from 'zod';
-import { User } from '../db';
+import { Bank, User } from '../db';
 import { authMiddleware } from './middelware';
 
 const SignupSchema = object({
@@ -36,6 +36,11 @@ router.post('/signup', async (req, res) => {
   //TODO BEFORE CREATING NEED TO HASH THE PASSWORD
   // https://mojoauth.com/blog/hashing-passwords-in-nodejs/
   const newuser = await User.create(body);
+  await Bank.create({
+    userId: newuser._id,
+    bankBalance: (1 + Math.random()) * 1000,
+  });
+
   const token = sign(
     {
       userid: newuser._id,
