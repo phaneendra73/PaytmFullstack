@@ -1,15 +1,15 @@
-const { bank } = require('../db');
+const { Bank } = require('../db');
 const express = require('express');
-const authMiddleware = require('./middelware');
+const { authMiddleware } = require('./middelware');
 const mongoose = require('mongoose');
 
 const router = express.Router();
 
 router.get('/balance', authMiddleware, async (req, res) => {
   const userid = req.userid;
-  const userbalance = await bank.findone({ userid: userid });
+  const userbalance = await Bank.findOne({ userid: userid });
 
-  res.statusCode(200).json({
+  res.status(200).json({
     userbalance,
   });
 });
@@ -56,19 +56,19 @@ router.post('/transfer', authMiddleware, async (req, res) => {
   const { amount, to } = req.body;
   session.startTransaction();
 
-  const amountfrom = await bank
-    .findone({ userid: req.userid })
-    .session(session);
+  const amountfrom = await Bank.findOne({ userId: req.userId }).session(
+    session
+  );
 
-  if (!amountfrom || amountfrom.balance < amount) {
+  if (amountfrom.bankBalance < amount) {
     await session.abortTransaction();
     return res.status(400).json({
       message: 'Insufficient balance',
     });
   }
 
-  const amountto = await bank.findone({ userid: to }).session(session);
-
+  const amountto = await Bank.findOne({ userId: to }).session(session);
+  console.log(amountto);
   if (!amountto) {
     await session.abortTransaction();
     return res.status(400).json({
@@ -76,19 +76,21 @@ router.post('/transfer', authMiddleware, async (req, res) => {
     });
   }
 
-  await bank
-    .updateOne({ userId: req.userId }, { $inc: { balance: -amount } })
-    .session(session);
+  await Bank.updateOne(
+    { userId: req.userId },
+    { $inc: { bankBalance: -amount } }
+  ).session(session);
 
-  await bank
-    .updateOne({ userId: to }, { $inc: { balance: amount } })
-    .session(session);
+  await Bank.updateOne(
+    { userId: to },
+    { $inc: { bankBalance: amount } }
+  ).session(session);
 
   // Commit the transaction
   await session.commitTransaction();
 
-  res.statusCode(200).json({
-    msg: 'transaction sucessfull',
+  res.status(200).json({
+    msg: 'transaction successfully',
   });
 });
 module.exports = router;

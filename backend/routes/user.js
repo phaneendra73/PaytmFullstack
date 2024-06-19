@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config');
 const { object, string } = require('zod');
 const { Bank, User } = require('../db');
-const authMiddleware = require('./middelware');
+const { authMiddleware } = require('./middelware');
 
 const SignupSchema = object({
   username: string().email(),
@@ -28,8 +28,8 @@ router.post('/signup', async (req, res) => {
       obj: obj,
     });
   }
-  const existinguser = User.findOne({ username: body.username });
-  if (existinguser._id) {
+  const existinguser = await User.findOne({ username: body.username });
+  if (existinguser) {
     return res.json({
       msg: 'already a user exixts with same username ',
     });
@@ -54,15 +54,15 @@ router.post('/signup', async (req, res) => {
   });
 });
 
-router.post('/signin', (req, res) => {
+router.post('/signin', async (req, res) => {
   const body = req.body;
-  const { sucess } = SigninSchema.safeParse(body);
-  if (!sucess) {
+  const { success } = SigninSchema.safeParse(body);
+  if (!success) {
     return res.json({
       msg: 'invalid input values ',
     });
   }
-  const signinUser = User.findone(body);
+  const signinUser = await User.findOne(body);
   if (!signinUser._id) {
     return res.json({
       msg: 'invalid user credentials',
@@ -89,13 +89,14 @@ const updateBody = object({
 router.put('/', authMiddleware, async (req, res) => {
   const { success } = updateBody.safeParse(req.body);
   if (!success) {
+    console.log('wrroe called');
     return res.status(411).json({
       message: 'Error while updating information',
     });
   }
 
   await User.updateOne({ _id: req.userId }, req.body);
-
+  console.log('after called');
   res.json({
     message: 'Updated successfully',
   });

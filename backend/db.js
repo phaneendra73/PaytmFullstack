@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 mongoose.connect(
-  'mongodb+srv://phaneendra3377:76hcjZs6rnfAJa5M@cluster0.9dlzxla.mongodb.net/paytm'
+  'mongodb+srv://phaneendra3377:VoVk2so8lmDAvjjE@cluster0.9dlzxla.mongodb.net/paytm'
 );
 
 const userSchema = new mongoose.Schema({
   username: String,
   password: String,
-  fristname: String,
+  firstname: String,
   lastname: String,
 });
 
