@@ -1,5 +1,5 @@
-import JWT_SECRET from '../config';
-import { verify } from 'jsonwebtoken';
+const JWT_SECRET = require('../config');
+const { verify } = require('jsonwebtoken');
 
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -24,6 +24,4 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-export default {
-  authMiddleware,
-};
+module.exports = authMiddleware;

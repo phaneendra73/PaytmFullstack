@@ -1,3 +1,3 @@
-const JWT_SECRET = 'IRONMANISIRONMANBEACAUSEHEISRICH';
-
-export default JWT_SECRET;
+module.exports = {
+  JWT_SECRET: 'your-jwt-secret',
+};
