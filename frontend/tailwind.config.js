@@ -5,14 +5,19 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        'chivo-mono': ['"Chivo Mono"', 'monospace'],
+        'my-font': ['"Chivo Mono"', 'monospace'],
       },
       colors: {
         slate: {
           900: '#1d1e1f', // Overriding bg-slate-900
         },
+        lime: {
+          400: '#D6FB41',
+          500: '#DCFF50',
+        },
       },
     },
   },
+  variants: {},
   plugins: [],
 };
