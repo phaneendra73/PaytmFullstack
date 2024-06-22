@@ -1,4 +1,9 @@
+import { SendMoney } from '../components/SendMoney';
 function Transfermoney() {
-  return <div>Transfermoney</div>;
+  return (
+    <div>
+      <SendMoney />
+    </div>
+  );
 }
 export { Transfermoney };

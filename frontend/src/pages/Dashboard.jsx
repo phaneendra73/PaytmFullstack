@@ -1,14 +1,37 @@
 import AppBar from '../components/AppBar';
 import { Balance } from '../components/Balance';
-import { SendMoney } from '../components/SendMoney';
 import { Users } from '../components/Users';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+
 function Dashboard() {
+  const [amount, setamount] = useState(0);
+  useEffect(() => {
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `http://localhost:3000/api/v1/bank/balance`,
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('moneysend'),
+      },
+      data: '',
+    };
+
+    axios
+      .request(config)
+      .then((response) => {
+        setamount(response.data.userbalance.bankBalance);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
   return (
     <div>
       <AppBar></AppBar>
-      <Balance amount={234567}></Balance>
+      <Balance amount={amount}></Balance>
+      <hr className='border-t-2 border-gray-300 my-4' />
       <Users></Users>
-      <SendMoney></SendMoney>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config');
+const bcrypt = require('bcrypt');
 const { object, string } = require('zod');
 const { Bank, User } = require('../db');
 const { authMiddleware } = require('./middelware');
@@ -17,67 +18,119 @@ const SigninSchema = object({
   password: string(),
 });
 
+const processZodError = (error) => {
+  const issues = error.errors || error.issues;
+  return issues
+    .map((issue) => `Field ${issue.path.join('.')} is ${issue.message}`)
+    .join(', ');
+};
+
 const router = express.Router();
 
 router.post('/signup', async (req, res) => {
   const body = req.body;
   const obj = SignupSchema.safeParse(body);
+
   if (!obj.success) {
-    return res.json({
-      msg: 'invalid input values',
-      obj: obj,
+    const errorMessage = processZodError(obj.error);
+    return res.status(400).json({
+      msg: errorMessage,
     });
   }
-  const existinguser = await User.findOne({ username: body.username });
-  if (existinguser) {
-    return res.json({
-      msg: 'already a user exixts with same username ',
-    });
-  }
-  //TODO BEFORE CREATING NEED TO HASH THE PASSWORD
-  // https://mojoauth.com/blog/hashing-passwords-in-nodejs/
-  const newuser = await User.create(body);
-  await Bank.create({
-    userId: newuser._id,
-    bankBalance: (1 + Math.random()) * 1000,
-  });
 
-  const token = jwt.sign(
-    {
-      userid: newuser._id,
-    },
-    JWT_SECRET
-  );
-  res.json({
-    msg: 'User Created Sucessfully',
-    token: token,
-  });
+  try {
+    const existingUser = await User.findOne({ username: body.username });
+
+    if (existingUser) {
+      return res.status(409).json({
+        msg: 'User already exists with the same username',
+      });
+    }
+
+    // Hash the password before saving to the database
+    const hashedPassword = await bcrypt.hash(body.password, 10); // Hash with salt rounds
+
+    const newUser = await User.create({
+      username: body.username,
+      password: hashedPassword,
+      firstname: body.firstname,
+      lastname: body.lastname,
+    });
+
+    // Create associated bank account for the new user
+    await Bank.create({
+      userId: newUser._id,
+      bankBalance: (1 + Math.random()) * 1000, // Example random balance
+    });
+
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        userid: newUser._id,
+      },
+      JWT_SECRET,
+      { expiresIn: '1h' } // Token expires in 1 hour
+    );
+
+    res.status(200).json({
+      msg: 'User Created Successfully',
+      token: token,
+    });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({
+      msg: 'Failed to create user. Please try again later.',
+    });
+  }
 });
-
 router.post('/signin', async (req, res) => {
   const body = req.body;
-  const { success } = SigninSchema.safeParse(body);
-  if (!success) {
-    return res.json({
-      msg: 'invalid input values ',
+  const obj = SigninSchema.safeParse(body);
+
+  if (!obj.success) {
+    return res.status(402).json({
+      msg: 'Invalid input values',
+      errors: obj.error,
     });
   }
-  const signinUser = await User.findOne(body);
-  if (!signinUser._id) {
-    return res.json({
-      msg: 'invalid user credentials',
+
+  try {
+    const { username, password } = body;
+
+    const signinUser = await User.findOne({ username });
+
+    if (!signinUser) {
+      return res.status(402).json({
+        msg: 'Invalid user credentials',
+      });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, signinUser.password);
+
+    if (!isPasswordValid) {
+      return res.status(402).json({
+        msg: 'Invalid user credentials',
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        userid: signinUser._id,
+      },
+      JWT_SECRET,
+      { expiresIn: '1h' } // Token expires in 1 hour
+    );
+
+    res.status(200).json({
+      msg: 'Signed in successfully',
+      token: token,
+    });
+  } catch (error) {
+    console.error('Error signing in user:', error);
+    res.status(500).json({
+      msg: 'Failed to sign in. Please try again later.',
     });
   }
-  const token = jwt.sign(
-    {
-      userid: signinUser._id,
-    },
-    JWT_SECRET
-  );
-  res.json({
-    msg: 'Signed in  Sucessfully',
-    token: token,
-  });
 });
 
 const updateBody = object({
@@ -89,30 +142,29 @@ const updateBody = object({
 router.put('/', authMiddleware, async (req, res) => {
   const { success } = updateBody.safeParse(req.body);
   if (!success) {
-    console.log('wrroe called');
     return res.status(411).json({
       message: 'Error while updating information',
     });
   }
 
   await User.updateOne({ _id: req.userId }, req.body);
-  console.log('after called');
   res.json({
     message: 'Updated successfully',
   });
 });
 
 router.get('/bulk', authMiddleware, async (req, res) => {
-  const filter = req.query.filter;
+  const filter = req.query.filter || '';
+
   const users = await User.find({
     $or: [
       {
-        firstName: {
+        firstname: {
           $regex: filter,
         },
       },
       {
-        lastName: {
+        lastname: {
           $regex: filter,
         },
       },
@@ -122,8 +174,8 @@ router.get('/bulk', authMiddleware, async (req, res) => {
   res.json({
     user: users.map((user) => ({
       username: user.username,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      firstName: user.firstname,
+      lastName: user.lastname,
       _id: user._id,
     })),
   });

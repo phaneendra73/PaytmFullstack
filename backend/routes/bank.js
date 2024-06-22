@@ -6,8 +6,8 @@ const mongoose = require('mongoose');
 const router = express.Router();
 
 router.get('/balance', authMiddleware, async (req, res) => {
-  const userid = req.userid;
-  const userbalance = await Bank.findOne({ userid: userid });
+  const userId = req.userId;
+  const userbalance = await Bank.findOne({ userId });
 
   res.status(200).json({
     userbalance,
@@ -63,16 +63,15 @@ router.post('/transfer', authMiddleware, async (req, res) => {
   if (amountfrom.bankBalance < amount) {
     await session.abortTransaction();
     return res.status(400).json({
-      message: 'Insufficient balance',
+      msg: 'Insufficient balance',
     });
   }
 
   const amountto = await Bank.findOne({ userId: to }).session(session);
-  console.log(amountto);
   if (!amountto) {
     await session.abortTransaction();
     return res.status(400).json({
-      message: 'Invalid account',
+      msg: 'Invalid account',
     });
   }
 

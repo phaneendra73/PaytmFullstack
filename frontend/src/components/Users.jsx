@@ -1,15 +1,50 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Button from './Button';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export const Users = () => {
   // Replace with backend call
-  const [users, setUsers] = useState([
-    {
-      firstName: 'Harkirat',
-      lastName: 'Singh',
-      _id: 1,
-    },
-  ]);
+  const [users, setUsers] = useState([]);
+  const [input, setinput] = useState('');
+  const debouncedInput = useDebounce(input, 730);
+
+  function useDebounce(value, delay) {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, delay);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value, delay]);
+
+    return debouncedValue;
+  }
+
+  useEffect(() => {
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `http://localhost:3000/api/v1/user/bulk?filter=${input}`,
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('moneysend'),
+      },
+      data: '',
+    };
+
+    axios
+      .request(config)
+      .then((response) => {
+        setUsers(response.data.user);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [debouncedInput]);
 
   return (
     <>
@@ -18,12 +53,15 @@ export const Users = () => {
         <input
           type='text'
           placeholder='Search users...'
+          onChange={(e) => {
+            setinput(e.target.value);
+          }}
           className='rounded-xl bg-slate-900 border-2 border-blue-50 focus:border-lime-300 focus:ring-2 focus:ring-lime-300 w-[80%] p-2 transition duration-300 ease-in-out'
         ></input>
       </div>
       <div>
         {users.map((user) => (
-          <User user={user} />
+          <User user={user} key={user._id} />
         ))}
       </div>
     </>
@@ -31,6 +69,12 @@ export const Users = () => {
 };
 
 function User({ user }) {
+  const navigate = useNavigate();
+  const redirectto = () => {
+    navigate(
+      `/Transfer?username=${user.firstName}+ ${user.lastName}&userid=${user._id}`
+    );
+  };
   return (
     <div className='flex justify-between'>
       <div className='flex'>
@@ -46,8 +90,8 @@ function User({ user }) {
         </div>
       </div>
 
-      <div className='flex flex-col justify-center h-ful'>
-        <Button label={'Send Money'} />
+      <div className='flex flex-col justify-center h-ful '>
+        <Button label={'Send Money'} click={redirectto} />
       </div>
     </div>
   );

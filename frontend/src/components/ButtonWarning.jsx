@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 function ButtonWarning({ text, route, routename }) {
   return (
-    <div className='flex justify-center items-center mt-3 space-x-2'>
+    <div className='flex justify-center items-center mt-3 space-x-2 font-my-font'>
       <p>{text}</p>
       <Link
         to={route}
