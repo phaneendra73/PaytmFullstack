@@ -3,5 +3,10 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/PaytmFullstack/', // Add this line
+  build: {
+    outDir: 'dist', // Ensure this matches your Render publish directory
+  },
+  server: {
+    historyApiFallback: true, // Ensure SPA routing works during development
+  },
 });
