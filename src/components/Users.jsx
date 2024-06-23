@@ -29,7 +29,7 @@ export const Users = () => {
     let config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: `http://localhost:3000/api/v1/user/bulk?filter=${input}`,
+      url: `https://paytmfullstack.onrender.com/api/v1/user/bulk?filter=${input}`,
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('moneysend'),
       },

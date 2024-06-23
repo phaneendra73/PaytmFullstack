@@ -19,7 +19,7 @@ function Signin() {
     try {
       setLoading(true);
       const response = await axios.post(
-        'http://localhost:3000/api/v1/user/signin',
+        'https://paytmfullstack.onrender.com/api/v1/user/signin',
         {
           username,
           password,
@@ -31,7 +31,7 @@ function Signin() {
         toast.success('Signup successful! Redirecting to dashboard...');
         setTimeout(() => {
           navigate('/dashboard');
-        }, 2000);
+        }, 1000);
       }
     } catch (error) {
       if (error.response) {

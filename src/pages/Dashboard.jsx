@@ -1,6 +1,7 @@
 import AppBar from '../components/AppBar';
 import { Balance } from '../components/Balance';
 import { Users } from '../components/Users';
+import Button from '../components/Button';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -10,7 +11,7 @@ function Dashboard() {
     let config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: `http://localhost:3000/api/v1/bank/balance`,
+      url: `https://paytmfullstack.onrender.com/api/v1/bank/balance`,
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('moneysend'),
       },

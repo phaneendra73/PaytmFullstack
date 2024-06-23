@@ -21,7 +21,7 @@ function Signup() {
     try {
       setLoading(true);
       const response = await axios.post(
-        'http://localhost:3000/api/v1/user/signup',
+        'https://paytmfullstack.onrender.com/api/v1/user/signup',
         {
           username,
           password,

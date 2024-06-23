@@ -24,7 +24,7 @@ export const SendMoney = () => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: 'http://localhost:3000/api/v1/bank/transfer',
+      url: 'https://paytmfullstack.onrender.com/api/v1/bank/transfer',
       headers: {
         'Content-Type': 'application/json',
         Authorization: 'Bearer ' + localStorage.getItem('moneysend'),
