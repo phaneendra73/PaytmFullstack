@@ -1,5 +1,7 @@
+# Frontend 
+This frontend is just a react componnets , hosted on Render at `https://paytmfullstack-1.onrender.com`. You can see all the pages in the pages folder in the frontend and components. Please ignore the UI and be patient with loading times since it's on a free server, which can be slow.
 
-# Paytm Fullstack Backend API
+# Backend API
 
 This backend API is part of the Paytm Fullstack project, hosted on Render at `https://paytmfullstack.onrender.com/api/v1`. It provides endpoints for user authentication, user management, and bank account management.
 
